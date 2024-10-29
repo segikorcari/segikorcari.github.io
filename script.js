@@ -1,67 +1,57 @@
-/* General styling */
-body {
-    font-family: Arial, sans-serif;
-    color: #333;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 0;
+// Personalized Greeting based on Time of Day and Stored User Name
+function personalizedGreeting() {
+    const now = new Date();
+    const hours = now.getHours();
+    let timeOfDay;
+
+    if (hours < 12) {
+        timeOfDay = "morning";
+    } else if (hours < 18) {
+        timeOfDay = "afternoon";
+    } else {
+        timeOfDay = "evening";
+    }
+
+    const userName = localStorage.getItem('userName') || 'Guest';
+    document.getElementById('greeting').textContent = `Good ${timeOfDay}, ${userName}!`;
 }
 
-/* Header */
-header {
-    text-align: center;
-    padding: 20px;
-    background-color: #4CAF50;
-    color: white;
+// Save User Name with Prompt (First-time Visit or Update)
+function saveUserName() {
+    const name = prompt("Enter your name:");
+    if (name) {
+        localStorage.setItem('userName', name);
+        personalizedGreeting();
+    }
 }
 
-/* Sections */
-section {
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 800px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+// Display Last Visit Time and Update on New Visit
+function updateVisitTime() {
+    const lastVisit = localStorage.getItem('lastVisit');
+    if (lastVisit) {
+        document.getElementById('last-visit').textContent = lastVisit;
+    }
+    const now = new Date().toLocaleString();
+    localStorage.setItem('lastVisit', now);
 }
 
-h1, h2 {
-    color: #333;
+// Fetch and Display Weather Data
+async function fetchWeather() {
+    try {
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.3314&longitude=-83.0458&current_weather=true');
+        const data = await response.json();
+        
+        // Simple mapping of weather code to description (simplified)
+        const weatherDescription = data.current_weather.weathercode === 0 ? 'clear sky' : 'partly cloudy';
+        document.getElementById('greeting').textContent += ` - Weather: ${data.current_weather.temperature}°C, ${weatherDescription}`;
+    } catch (error) {
+        console.log("Could not fetch weather data", error);
+    }
 }
 
-ul {
-    list-style-type: disc;
-    padding-left: 20px;
-}
-
-/* Table Styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-th {
-    background-color: #f4f4f4;
-    font-weight: bold;
-}
-
-/* Image Styling */
-#gallery img {
-    display: inline-block;
-    margin: 10px;
-    width: 200px;
-    height: auto;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-#gallery {
-    text-align: center;
-}
+// Initialize on Page Load
+document.addEventListener("DOMContentLoaded", () => {
+    personalizedGreeting();
+    fetchWeather();
+    updateVisitTime();
+});
